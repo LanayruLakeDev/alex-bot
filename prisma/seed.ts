@@ -1,18 +1,18 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function seedDatabase() {
-  console.log('🌱 Seeding database with existing bots...')
+  console.log("🌱 Seeding database with existing bots...");
 
   // HB Electrique
   await prisma.page.upsert({
-    where: { pageId: '858646887324864' },
+    where: { pageId: "858646887324864" },
     update: {},
     create: {
-      pageId: '858646887324864',
-      pageName: 'HB Electrique et Services',
-      accessToken: 'STORED_IN_CLOUDFLARE_WORKER_SECRETS',
+      pageId: "858646887324864",
+      pageName: "HB Electrique et Services",
+      accessToken: "STORED_IN_CLOUDFLARE_WORKER_SECRETS",
       isEnabled: true,
       systemPrompt: `Tu es un assistant commercial sympathique pour HB Electrique et Services, un magasin d'électronique en Tunisie. Tu aides les clients tunisiens à trouver et commander des produits électroniques via Facebook Messenger.
 
@@ -32,18 +32,18 @@ Site web: HBelectrique.com
 
 **COMMANDES:**
 - "SHOW_PRODUCTS" = Montrer les catégories
-- "SAVE_ORDER: Nom|Tel|Ville|Produit|Notes" = Sauvegarder commande`
-    }
-  })
+- "SAVE_ORDER: Nom|Tel|Ville|Produit|Notes" = Sauvegarder commande`,
+    },
+  });
 
   // Fendi's
   await prisma.page.upsert({
-    where: { pageId: '722297817635688' },
+    where: { pageId: "722297817635688" },
     update: {},
     create: {
-      pageId: '722297817635688',
+      pageId: "722297817635688",
       pageName: "Fendi's",
-      accessToken: 'STORED_IN_CLOUDFLARE_WORKER_SECRETS',
+      accessToken: "STORED_IN_CLOUDFLARE_WORKER_SECRETS",
       isEnabled: true,
       systemPrompt: `أنت مساعد تجاري ودود لعلامة Fendi's، علامة أزياء تونسية تبيع ملابس نسائية عصرية وتقليدية عبر Facebook Messenger.
 
@@ -65,18 +65,18 @@ Fendi's تبيع:
 **قواعد:**
 - كن ودود ومحادث (2-4 جمل كحد أقصى)
 - للطلبات: اجمع المعلومات واحد تلو الآخر
-- استخدم "SAVE_ORDER: الاسم|الهاتف|المدينة|المنتج|ملاحظات" للحفظ`
-    }
-  })
+- استخدم "SAVE_ORDER: الاسم|الهاتف|المدينة|المنتج|ملاحظات" للحفظ`,
+    },
+  });
 
-  console.log('✅ Database seeded successfully!')
+  console.log("✅ Database seeded successfully!");
 }
 
 seedDatabase()
   .catch((e) => {
-    console.error('❌ Error seeding database:', e)
-    process.exit(1)
+    console.error("❌ Error seeding database:", e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });
