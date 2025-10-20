@@ -4,11 +4,12 @@ import { prisma } from '@/lib/prisma'
 // GET page configuration by Facebook Page ID (for Cloudflare Worker)
 export async function GET(
   request: Request,
-  { params }: { params: { pageId: string } }
+  { params }: { params: Promise<{ pageId: string }> }
 ) {
   try {
+    const { pageId } = await params
     const page = await prisma.page.findUnique({
-      where: { pageId: params.pageId }
+      where: { pageId }
     })
     
     if (!page) {
