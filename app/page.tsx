@@ -199,7 +199,31 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return <div className="p-8">Loading...</div>;
+    return (
+      <div className="container mx-auto p-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 w-64 rounded bg-muted" />
+          <div className="rounded-lg border bg-card p-6 shadow-sm">
+            <div className="mb-6 h-6 w-52 rounded bg-muted" />
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-[2fr,2fr,1.5fr,1fr,1fr,1.2fr] items-center gap-4 rounded-md border bg-muted/50 p-4"
+                >
+                  <div className="h-4 rounded bg-muted" />
+                  <div className="h-4 rounded bg-muted" />
+                  <div className="h-9 rounded bg-muted" />
+                  <div className="h-6 w-20 rounded-full bg-muted" />
+                  <div className="h-5 w-12 rounded bg-muted" />
+                  <div className="h-9 rounded bg-muted" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
