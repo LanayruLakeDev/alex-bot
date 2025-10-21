@@ -35,16 +35,38 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
+    console.log('🔄 Updating page:', id);
+    console.log('📝 Update data:', body);
+
+    // Validate that the page exists first
+    const existingPage = await prisma.page.findUnique({
+      where: { id },
+    });
+
+    if (!existingPage) {
+      console.error('❌ Page not found:', id);
+      return NextResponse.json(
+        { error: "Page not found" },
+        { status: 404 }
+      );
+    }
+
+    // Update the page
     const page = await prisma.page.update({
       where: { id },
       data: body,
     });
 
+    console.log('✅ Page updated successfully:', page.pageName);
     return NextResponse.json(page);
   } catch (error) {
-    console.error("Error updating page:", error);
+    console.error("❌ Error updating page:", error);
+    console.error("Error details:", error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: "Failed to update page" },
+      { 
+        error: "Failed to update page",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 },
     );
   }

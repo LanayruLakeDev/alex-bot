@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 type Page = {
   id: string;
@@ -101,6 +102,9 @@ export default function Dashboard() {
 
     setIsSaving(true);
     try {
+      console.log('💾 Saving prompt for:', editingPage.pageName);
+      console.log('📝 Data:', { systemPrompt: editedPrompt.substring(0, 50) + '...', aiModel: selectedAiModel });
+      
       const res = await fetch(`/api/pages/${editingPage.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -110,16 +114,33 @@ export default function Dashboard() {
         }),
       });
 
+      const responseText = await res.text();
+      console.log('📡 Response status:', res.status);
+      console.log('📡 Response body:', responseText);
+
       if (res.ok) {
         await fetchPages();
         closeDialog();
+        toast.success("Prompt saved successfully! 🎉", {
+          description: `Updated ${editingPage.pageName} with ${selectedAiModel === 'gemini' ? '✨ Gemini' : '🦙 Llama'}`,
+        });
       } else {
-        console.error("Failed to save:", await res.text());
-        alert("Failed to save prompt. Please try again.");
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { error: responseText };
+        }
+        console.error("Failed to save:", errorData);
+        toast.error("Failed to save prompt", {
+          description: errorData.details || errorData.error || "Please try again",
+        });
       }
     } catch (error) {
       console.error("Error saving prompt:", error);
-      alert("Error saving prompt. Please check your connection.");
+      toast.error("Error saving prompt", {
+        description: error instanceof Error ? error.message : "Network error. Please check your connection.",
+      });
     } finally {
       setIsSaving(false);
     }
