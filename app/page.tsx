@@ -21,6 +21,13 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Page = {
   id: string;
@@ -28,6 +35,7 @@ type Page = {
   pageName: string;
   accessToken: string;
   isEnabled: boolean;
+  aiModel: string;
   systemPrompt: string;
   createdAt: string;
   updatedAt: string;
@@ -38,6 +46,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [editingPage, setEditingPage] = useState<Page | null>(null);
   const [editedPrompt, setEditedPrompt] = useState("");
+  const [selectedAiModel, setSelectedAiModel] = useState("llama");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -76,6 +85,7 @@ export default function Dashboard() {
   const openEditDialog = (page: Page) => {
     setEditingPage(page);
     setEditedPrompt(page.systemPrompt);
+    setSelectedAiModel(page.aiModel || "llama");
     setIsDialogOpen(true);
   };
 
@@ -83,6 +93,7 @@ export default function Dashboard() {
     setIsDialogOpen(false);
     setEditingPage(null);
     setEditedPrompt("");
+    setSelectedAiModel("llama");
   };
 
   const savePrompt = async () => {
@@ -93,7 +104,10 @@ export default function Dashboard() {
       const res = await fetch(`/api/pages/${editingPage.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ systemPrompt: editedPrompt }),
+        body: JSON.stringify({ 
+          systemPrompt: editedPrompt,
+          aiModel: selectedAiModel 
+        }),
       });
 
       if (res.ok) {
@@ -130,6 +144,7 @@ export default function Dashboard() {
                 <TableRow>
                   <TableHead>Page Name</TableHead>
                   <TableHead>Page ID</TableHead>
+                  <TableHead>AI Model</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Enable/Disable</TableHead>
                   <TableHead>Actions</TableHead>
@@ -143,6 +158,11 @@ export default function Dashboard() {
                     </TableCell>
                     <TableCell className="font-mono text-sm">
                       {page.pageId}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs font-medium">
+                        {page.aiModel === "gemini" ? "✨ Gemini" : "🦙 Llama"}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <span
@@ -182,17 +202,38 @@ export default function Dashboard() {
                             </DialogTitle>
                           </DialogHeader>
                           <div className="flex-1 overflow-y-auto px-6 py-4">
-                            <div className="space-y-3">
-                              <Label htmlFor="prompt" className="text-base font-semibold">
-                                System Prompt
-                              </Label>
-                              <Textarea
-                                id="prompt"
-                                value={editedPrompt}
-                                onChange={(e) => setEditedPrompt(e.target.value)}
-                                className="min-h-[60vh] font-mono text-sm leading-relaxed resize-none focus:ring-2"
-                                placeholder="Enter system prompt..."
-                              />
+                            <div className="space-y-4">
+                              <div>
+                                <Label htmlFor="aiModel" className="text-base font-semibold">
+                                  AI Model
+                                </Label>
+                                <Select value={selectedAiModel} onValueChange={setSelectedAiModel}>
+                                  <SelectTrigger className="w-full mt-2">
+                                    <SelectValue placeholder="Select AI Model" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="llama">
+                                      🦙 Llama 4 Maverick (Groq - Fast & Free)
+                                    </SelectItem>
+                                    <SelectItem value="gemini">
+                                      ✨ Gemini 2.5 Flash Lite (Google - Advanced)
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="prompt" className="text-base font-semibold">
+                                  System Prompt
+                                </Label>
+                                <Textarea
+                                  id="prompt"
+                                  value={editedPrompt}
+                                  onChange={(e) => setEditedPrompt(e.target.value)}
+                                  className="min-h-[52vh] font-mono text-sm leading-relaxed resize-none focus:ring-2 mt-2"
+                                  placeholder="Enter system prompt..."
+                                />
+                              </div>
                             </div>
                           </div>
                           <div className="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50">
