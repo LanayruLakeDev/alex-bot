@@ -38,6 +38,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [editingPage, setEditingPage] = useState<Page | null>(null);
   const [editedPrompt, setEditedPrompt] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     fetchPages();
@@ -74,11 +76,19 @@ export default function Dashboard() {
   const openEditDialog = (page: Page) => {
     setEditingPage(page);
     setEditedPrompt(page.systemPrompt);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setEditingPage(null);
+    setEditedPrompt("");
   };
 
   const savePrompt = async () => {
     if (!editingPage) return;
 
+    setIsSaving(true);
     try {
       const res = await fetch(`/api/pages/${editingPage.id}`, {
         method: "PATCH",
@@ -87,11 +97,17 @@ export default function Dashboard() {
       });
 
       if (res.ok) {
-        fetchPages();
-        setEditingPage(null);
+        await fetchPages();
+        closeDialog();
+      } else {
+        console.error("Failed to save:", await res.text());
+        alert("Failed to save prompt. Please try again.");
       }
     } catch (error) {
       console.error("Error saving prompt:", error);
+      alert("Error saving prompt. Please check your connection.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -147,7 +163,9 @@ export default function Dashboard() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Dialog>
+                      <Dialog open={isDialogOpen && editingPage?.id === page.id} onOpenChange={(open) => {
+                        if (!open) closeDialog();
+                      }}>
                         <DialogTrigger asChild>
                           <Button
                             variant="outline"
@@ -157,34 +175,37 @@ export default function Dashboard() {
                             Edit Prompt
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-3xl max-h-[80vh]">
-                          <DialogHeader>
-                            <DialogTitle>
+                        <DialogContent className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0">
+                          <DialogHeader className="px-6 py-4 border-b">
+                            <DialogTitle className="text-xl">
                               Edit System Prompt - {page.pageName}
                             </DialogTitle>
                           </DialogHeader>
-                          <div className="space-y-4 overflow-y-auto">
-                            <div>
-                              <Label htmlFor="prompt">System Prompt</Label>
+                          <div className="flex-1 overflow-y-auto px-6 py-4">
+                            <div className="space-y-3">
+                              <Label htmlFor="prompt" className="text-base font-semibold">
+                                System Prompt
+                              </Label>
                               <Textarea
                                 id="prompt"
                                 value={editedPrompt}
-                                onChange={(e) =>
-                                  setEditedPrompt(e.target.value)
-                                }
-                                rows={20}
-                                className="font-mono text-sm mt-2"
+                                onChange={(e) => setEditedPrompt(e.target.value)}
+                                className="min-h-[60vh] font-mono text-sm leading-relaxed resize-none focus:ring-2"
+                                placeholder="Enter system prompt..."
                               />
                             </div>
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => setEditingPage(null)}
-                              >
-                                Cancel
-                              </Button>
-                              <Button onClick={savePrompt}>Save Changes</Button>
-                            </div>
+                          </div>
+                          <div className="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50">
+                            <Button
+                              variant="outline"
+                              onClick={closeDialog}
+                              disabled={isSaving}
+                            >
+                              Cancel
+                            </Button>
+                            <Button onClick={savePrompt} disabled={isSaving} className="px-6">
+                              {isSaving ? "Saving..." : "Save Changes"}
+                            </Button>
                           </div>
                         </DialogContent>
                       </Dialog>
