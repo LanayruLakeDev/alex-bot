@@ -43,3 +43,6 @@ next-env.d.ts
 /app/generated/prisma
 prisma/check_pages.ts
 prisma/dump_pages.ts
+prisma/seed.ts
+prisma/add_casablanca.ts
+prisma/update_ai_model.ts
