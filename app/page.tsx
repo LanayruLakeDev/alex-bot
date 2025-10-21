@@ -266,8 +266,8 @@ export default function Dashboard() {
                           <SelectValue placeholder="Select AI Model" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="llama">🦙 Llama 4 Maverick (Groq - Fast & Free)</SelectItem>
-                          <SelectItem value="gemini">✨ Gemini 2.5 Flash Lite (Google - Advanced)</SelectItem>
+                          <SelectItem value="llama">🦙 Llama 4 (Groq)</SelectItem>
+                          <SelectItem value="gemini">✨ Gemini 2.5 (Google)</SelectItem>
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground mt-2">
