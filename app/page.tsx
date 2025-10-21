@@ -50,6 +50,7 @@ export default function Dashboard() {
   const [selectedAiModel, setSelectedAiModel] = useState("llama");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [aiModelUpdating, setAiModelUpdating] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPages();
@@ -64,6 +65,57 @@ export default function Dashboard() {
       console.error("Error fetching pages:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateAiModelQuick = async (page: Page, model: string) => {
+    if (page.aiModel === model) return;
+
+    try {
+      setAiModelUpdating(page.id);
+      const res = await fetch(`/api/pages/${page.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aiModel: model }),
+      });
+
+      const responseText = await res.text();
+      console.log("⚙️ Quick model switch status:", res.status, responseText);
+
+      if (!res.ok) {
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { error: responseText };
+        }
+        toast.error("Failed to update AI model", {
+          description: errorData.details || errorData.error || "Please try again",
+        });
+        return;
+      }
+
+      setPages((prev) =>
+        prev.map((p) =>
+          p.id === page.id
+            ? {
+                ...p,
+                aiModel: model,
+              }
+            : p,
+        ),
+      );
+
+      toast.success("AI model updated", {
+        description: `Switched ${page.pageName} to ${model === "gemini" ? "✨ Gemini" : "🦙 Llama"}`,
+      });
+    } catch (error) {
+      console.error("Error updating AI model:", error);
+      toast.error("Error updating AI model", {
+        description: error instanceof Error ? error.message : "Network error. Please check your connection.",
+      });
+    } finally {
+      setAiModelUpdating(null);
     }
   };
 
@@ -165,7 +217,7 @@ export default function Dashboard() {
                 <TableRow>
                   <TableHead>Page Name</TableHead>
                   <TableHead>Page ID</TableHead>
-                  <TableHead>AI Model</TableHead>
+                  <TableHead>AI Model (Quick Switch)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Enable/Disable</TableHead>
                   <TableHead>Actions</TableHead>
@@ -181,9 +233,22 @@ export default function Dashboard() {
                       {page.pageId}
                     </TableCell>
                     <TableCell>
-                      <span className="text-xs font-medium">
-                        {page.aiModel === "gemini" ? "✨ Gemini" : "🦙 Llama"}
-                      </span>
+                      <Select
+                        value={page.aiModel || "llama"}
+                        onValueChange={(value) => updateAiModelQuick(page, value)}
+                        disabled={aiModelUpdating === page.id}
+                      >
+                        <SelectTrigger className="w-[220px]">
+                          <SelectValue placeholder="Select AI Model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="llama">🦙 Llama 4 Maverick (Groq - Fast & Free)</SelectItem>
+                          <SelectItem value="gemini">✨ Gemini 2.5 Flash Lite (Google - Advanced)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Switch models instantly — prompt edit not required.
+                      </p>
                     </TableCell>
                     <TableCell>
                       <span
